@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Теплицы Хогвартса — Травология WoM</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Marcellus&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        hogwarts: {
+                            gold: '#D4AF37',
+                            dark: '#080d09',
+                            green: '#1b3b22',
+                            accent: '#2d5a35',
+                            emerald: '#10b981'
+                        }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        body: ['Marcellus', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #080d09;
+            color: #e2e8f0;
+            font-family: 'Marcellus', serif;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .greenhouse-bg {
+            background: linear-gradient(180deg, rgba(13, 26, 16, 0.9) 0%, rgba(5, 10, 6, 0.98) 100%),
+                        radial-gradient(circle at 50% 20%, rgba(45, 90, 53, 0.25) 0%, transparent 70%);
+        }
+
+        /* Glassmorphism Panel */
+        .glass-panel {
+            background: rgba(10, 20, 12, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        /* Active Button Highlight */
+        .btn-step-active {
+            border-color: #D4AF37 !important;
+            background: rgba(212, 175, 55, 0.25) !important;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+            transform: scale(1.03);
+        }
+
+        /* Screen Shake FX */
+        @keyframes screenShake {
+            0% { transform: translate(2px, 1px) rotate(0deg); }
+            10% { transform: translate(-2px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(2px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake-active {
+            animation: screenShake 0.15s infinite;
+        }
+
+        /* Water / Bubble animations */
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+        }
+        .bubble {
+            position: fixed;
+            bottom: -50px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(0,191,255,0.4));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 99;
+            animation: floatUp 4s linear infinite;
+        }
+
+        /* Splatter Particles */
+        .splatter {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: splatAnim 1.2s ease-out forwards;
+        }
+        @keyframes splatAnim {
+            0% { transform: scale(0.1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Vines Overlay Effect */
+        .vines-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 90;
+            background: radial-gradient(circle, transparent 40%, rgba(0,20,5,0.95) 100%);
+            box-shadow: inset 0 0 100px #001505;
+        }
+
+        /* Clickable Grown Plant Animation */
+        .grown-plant-interactive {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .grown-plant-interactive:hover {
+            transform: scale(1.2) rotate(3deg);
+            filter: drop-shadow(0 0 25px rgba(212, 175, 55, 0.8));
+        }
+        .grown-plant-interactive:active {
+            transform: scale(0.95) rotate(-3deg);
+        }
+
+        /* Bounce Animation */
+        @keyframes plantBounce {
+            0%, 100% { transform: translateY(0) scale(1.1); }
+            50% { transform: translateY(-25px) scale(1.2) rotate(5deg); }
+        }
+        .bounce-anim {
+            animation: plantBounce 0.4s ease 3;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(5, 10, 6, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 175, 55, 0.6);
+        }
+    </style>
+</head>
+<body class="min-h-screen greenhouse-bg flex flex-col justify-between relative" id="mainBody">
+
+    <!-- OVERLAY FX CONTAINER -->
+    <div id="fxOverlayContainer" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+
+    <!-- HEADER -->
+    <header class="border-b border-yellow-600/30 bg-black/70 backdrop-blur-md px-4 py-3 sticky top-0 z-40 shadow-xl">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-yellow-600/20 border border-yellow-500/50 flex items-center justify-center text-yellow-400 text-xl shadow-inner">
+                    <i class="fa-solid fa-leaf"></i>
+                </div>
+                <div>
+                    <h1 class="font-cinzel text-xl sm:text-2xl font-bold text-yellow-400 tracking-wider uppercase flex items-center gap-2">
+                        Теплицы Хогвартса <span class="text-xs text-green-400 font-normal normal-case border border-green-600/40 px-2 py-0.5 rounded-full bg-green-950/50">WoM Edition</span>
+                    </h1>
+                    <p class="text-xs text-green-300/70">Уроки Травологии</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="toggleAchievementsModal()" class="px-4 py-2 bg-yellow-600/20 hover:bg-yellow-600/40 border border-yellow-500/40 rounded-xl text-yellow-300 font-cinzel text-xs font-bold transition flex items-center gap-2 shadow">
+                    <i class="fa-solid fa-trophy text-yellow-400"></i> Достижения (<span id="achieveCount">0</span>/5)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- GREENHOUSE TABS -->
+    <nav class="max-w-7xl mx-auto w-full px-4 pt-4 z-30">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button onclick="switchGreenhouse(1)" id="ghTab1" class="p-3 rounded-xl border border-yellow-500/50 bg-yellow-600/30 text-yellow-300 font-cinzel text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 shadow-lg">
+                <i class="fa-solid fa-house-chimney-window text-base"></i>
+                <div class="text-left">
+                    <div>Теплица №1</div>
+                    <div class="text-[10px] font-normal text-yellow-200/70">Учебные и Целебные</div>
+                </div>
+            </button>
+            <button onclick="switchGreenhouse(2)" id="ghTab2" class="p-3 rounded-xl border border-green-800/40 bg-black/60 text-gray-400 font-cinzel text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-skull-crossbones text-base"></i>
+                <div class="text-left">
+                    <div>Теплица №2</div>
+                    <div class="text-[10px] font-normal text-gray-500">Опасные и Боевые</div>
+                </div>
+            </button>
+            <button onclick="switchGreenhouse(3)" id="ghTab3" class="p-3 rounded-xl border border-green-800/40 bg-black/60 text-gray-400 font-cinzel text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                <div class="text-left">
+                    <div>Теплица №3</div>
+                    <div class="text-[10px] font-normal text-gray-500">Редкие и Эксцентричные</div>
+                </div>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN INTERACTIVE SECTION -->
+    <main class="max-w-7xl mx-auto w-full px-4 py-4 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 z-20">
+        
+        <!-- LEFT: PLANT CATALOG LIST (5 cols) -->
+        <section class="lg:col-span-5 glass-panel rounded-2xl p-4 flex flex-col h-[580px] shadow-2xl">
+            <div class="flex items-center justify-between border-b border-yellow-600/20 pb-3 mb-3">
+                <h2 class="font-cinzel text-sm sm:text-base text-yellow-400 font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-book-bookmark text-green-400"></i> Каталог Теплицы
+                </h2>
+                <span id="ghPlantCounter" class="text-xs bg-green-900/60 border border-green-600/40 text-green-300 px-2.5 py-0.5 rounded-full font-cinzel">5 видов</span>
+            </div>
+
+            <div id="plantsList" class="space-y-2 overflow-y-auto flex-1 pr-1">
+                <!-- Plants items loaded here -->
+            </div>
+        </section>
+
+        <!-- RIGHT: CULTIVATION STATION & LAB (7 cols) -->
+        <section class="lg:col-span-7 glass-panel rounded-2xl p-4 sm:p-6 flex flex-col justify-between relative shadow-2xl overflow-hidden min-h-[580px]">
+            
+            <!-- TOP GUIDANCE BAR -->
+            <div class="bg-black/60 border border-yellow-500/30 rounded-xl p-3 text-center shadow-md">
+                <span class="text-[10px] font-cinzel uppercase tracking-widest text-yellow-400 font-bold block mb-0.5">
+                    <i class="fa-solid fa-compass"></i> Инструкция:
+                </span>
+                <p id="stepInstruction" class="text-xs sm:text-sm font-body text-green-200">
+                    👈 Выберите растение из списка слева, чтобы начать посадку!
+                </p>
+            </div>
+
+            <!-- POT & PLANT DISPLAY STAGE -->
+            <div id="potDisplayZone" class="my-4 flex flex-col items-center justify-center relative flex-1 min-h-[220px]">
+                
+                <!-- Floating FX Pop -->
+                <div id="statusPop" class="absolute top-2 bg-yellow-500 text-black font-cinzel font-bold text-xs px-4 py-1.5 rounded-full shadow-2xl transition-all transform scale-0 opacity-0 z-30 pointer-events-none">
+                    ✨ Готово!
+                </div>
+
+                <!-- Interactive Hint Badge for Grown Plant -->
+                <div id="interactiveHint" class="hidden absolute top-12 bg-green-900/90 border border-yellow-400/80 text-yellow-300 font-cinzel text-[11px] px-3 py-1 rounded-full shadow-xl animate-pulse z-20 pointer-events-none">
+                    <i class="fa-solid fa-hand-pointer mr-1"></i> Нажмите на растение, чтобы активировать эффект!
+                </div>
+
+                <!-- Plant Visual Graphics (Clickable when fully grown) -->
+                <div id="plantGraphic" onclick="onGrownPlantClick()" class="text-7xl sm:text-9xl transition-all duration-500 z-10 mb-2 transform scale-90 filter drop-shadow-[0_10px_15px_rgba(0,0,0,0.8)]">
+                    🪴
+                </div>
+
+                <!-- Magical Pot Base -->
+                <div class="w-36 sm:w-44 h-20 bg-gradient-to-b from-amber-800 to-amber-950 border-t-8 border-amber-700 rounded-b-3xl shadow-2xl relative z-10 flex flex-col items-center justify-center border-x-2 border-amber-900">
+                    <span id="potLabel" class="text-xs font-cinzel font-bold text-amber-200/90 text-center px-2">Горшок пуст</span>
+                    <span id="subLabel" class="text-[9px] text-yellow-500/70 uppercase tracking-wider">Субстрат не готов</span>
+                </div>
+
+                <!-- Pot Shadow -->
+                <div class="w-48 h-5 bg-black/80 rounded-full blur-md -mt-2"></div>
+            </div>
+
+            <!-- PLANT INFO CARD -->
+            <div id="plantInfoCard" class="hidden mb-4 bg-green-950/40 border border-green-700/30 rounded-xl p-3 text-xs">
+                <div class="flex justify-between items-center mb-1">
+                    <span id="infoPlantName" class="font-cinzel font-bold text-yellow-400 text-sm">Название</span>
+                    <span id="infoPlantRarity" class="text-[10px] bg-yellow-900/40 text-yellow-300 border border-yellow-600/30 px-2 py-0.5 rounded">Редкое</span>
+                </div>
+                <p id="infoPlantDesc" class="text-gray-300 text-[11px] leading-relaxed">Описание растения...</p>
+            </div>
+
+            <!-- STEP BY STEP INTERACTIVE CONTROLS -->
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button onclick="executeStep(1)" id="btnStep1" class="p-2.5 bg-black/50 border border-green-800/60 rounded-xl text-center text-xs font-cinzel text-green-300 hover:bg-green-900/40 transition opacity-50 pointer-events-none flex flex-col items-center justify-center gap-1 shadow">
+                        <i class="fa-solid fa-trowel text-amber-400 text-base"></i>
+                        <span>1. Рыхление</span>
+                        <span class="text-[9px] text-gray-400 font-sans">Лунная почва</span>
+                    </button>
+
+                    <button onclick="executeStep(2)" id="btnStep2" class="p-2.5 bg-black/50 border border-green-800/60 rounded-xl text-center text-xs font-cinzel text-green-300 hover:bg-green-900/40 transition opacity-50 pointer-events-none flex flex-col items-center justify-center gap-1 shadow">
+                        <i class="fa-solid fa-flask-vial text-purple-400 text-base"></i>
+                        <span>2. Питание</span>
+                        <span class="text-[9px] text-gray-400 font-sans">Костная пыль</span>
+                    </button>
+
+                    <button onclick="executeStep(3)" id="btnStep3" class="p-2.5 bg-black/50 border border-green-800/60 rounded-xl text-center text-xs font-cinzel text-green-300 hover:bg-green-900/40 transition opacity-50 pointer-events-none flex flex-col items-center justify-center gap-1 shadow">
+                        <i class="fa-solid fa-faucet-drip text-blue-400 text-base"></i>
+                        <span>3. Полив</span>
+                        <span class="text-[9px] text-gray-400 font-sans">Живая вода</span>
+                    </button>
+
+                    <button onclick="executeStep(4)" id="btnStep4" class="p-2.5 bg-black/50 border border-green-800/60 rounded-xl text-center text-xs font-cinzel text-green-300 hover:bg-green-900/40 transition opacity-50 pointer-events-none flex flex-col items-center justify-center gap-1 shadow">
+                        <i class="fa-solid fa-wand-magic-sparkles text-yellow-400 text-base"></i>
+                        <span>4. Заклинание</span>
+                        <span class="text-[9px] text-gray-400 font-sans">Люмос Солнечный</span>
+                    </button>
+                </div>
+
+                <!-- TIMER & FAST FORWARD -->
+                <div id="timerPanel" class="hidden bg-yellow-950/40 border border-yellow-600/40 rounded-xl p-3 flex flex-row justify-between items-center gap-2 shadow-lg">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-hourglass-half text-yellow-400 text-xl animate-spin"></i>
+                        <div>
+                            <span class="text-[10px] text-gray-400 font-cinzel block uppercase tracking-wider">Созревание:</span>
+                            <span id="timerClock" class="text-sm font-bold text-yellow-400 font-cinzel tracking-widest">00:00:10</span>
+                        </div>
+                    </div>
+                    <button onclick="instantGrow()" class="px-4 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-cinzel font-bold text-xs rounded-xl transition shadow-lg flex items-center gap-1.5 active:scale-95">
+                        <i class="fa-solid fa-bolt"></i> Ускорить за 1 клик
+                    </button>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-yellow-600/20 bg-black/80 py-2.5 px-4 text-center text-xs text-gray-500 font-cinzel z-30">
+        Учебные Теплицы Травологии • Хогвартс WoM • Магия Ботаники
+    </footer>
+
+    <!-- ACHIEVEMENTS MODAL -->
+    <div id="achievementsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="glass-panel border border-yellow-500/50 rounded-2xl max-w-md w-full p-6 relative shadow-2xl">
+            <button onclick="toggleAchievementsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="font-cinzel text-lg text-yellow-400 font-bold mb-4 flex items-center gap-2 border-b border-yellow-600/30 pb-2">
+                <i class="fa-solid fa-award text-yellow-500"></i> Награды Траволога
+            </h3>
+            <div id="achievementsList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                <!-- Loaded via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- WEB AUDIO API & APPLICATION ENGINE -->
+    <script>
+        // WEB AUDIO API SOUND SYNTHESIZER
+        const AudioSys = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playScream() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(450, now);
+                osc.frequency.linearRampToValueAtTime(1400, now + 0.3);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 1.2);
+
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 1.2);
+            },
+            playWaterSplash() {
+                this.init();
+                for (let i = 0; i < 6; i++) {
+                    setTimeout(() => {
+                        if (!this.ctx) return;
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(350 + Math.random() * 450, this.ctx.currentTime);
+                        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start();
+                        osc.stop(this.ctx.currentTime + 0.12);
+                    }, i * 60);
+                }
+            },
+            playBite() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(70, now + 0.15);
+
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.15);
+            },
+            playMagic() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.4); // C6
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.4);
+            },
+            playPop() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+        };
+
+        // CANONICAL HOGWARTS PLANTS DATABASE (15 PLANTS WITH ENHANCED VISUALS)
+        const plantsDB = [
+            // Greenhouse 1: Educational & Healing
+            { id: 'mandrake', gh: 1, name: 'Мандрагора', seed: '🌱', grown: '👶🪴', rarity: 'Целебное', desc: 'Корень напоминает человеческого младенца. Крик взрослой Мандрагоры смертелен, молодой — оглушает.', effect: 'scream', growTime: 8 },
+            { id: 'bubotuber', gh: 1, name: 'Бубонтюбер', seed: '🧄', grown: '🧄🌳', rarity: 'Учебное', desc: 'Похож на толстого черного слизня с нарывами. Гной излечивает самые тяжелые формы угревой сыпи.', effect: 'pus', growTime: 10 },
+            { id: 'dittany', gh: 1, name: 'Бадьян', seed: '🌿', grown: '☘️✨', rarity: 'Целебное', desc: 'Ценное растение, экстракт которого мгновенно затягивает глубокие раны и ожоги.', effect: 'heal', growTime: 6 },
+            { id: 'asphodel', gh: 1, name: 'Асфодель', seed: '🌾', grown: '🌾💤', rarity: 'Зелейное', desc: 'Измельченный корень используется для приготовления Напитка Живой Смерти.', effect: 'sleep', growTime: 9 },
+            { id: 'valerian', gh: 1, name: 'Валериана волшебная', seed: '🌱', grown: '🪻✨', rarity: 'Успокаивающее', desc: 'Побеги обладают мощным умиротворяющим свойством и применяются в Усыпляющих зельях.', effect: 'calm', growTime: 7 },
+
+            // Greenhouse 2: Dangerous & Combat
+            { id: 'devils_snare', gh: 2, name: 'Дьявольские силки', seed: '🪸', grown: '🕸️🌿', rarity: 'Опасное', desc: 'Способно душить жертву стеблями. Любит тьму и влагу, панически боится света и огня.', effect: 'vines', growTime: 10 },
+            { id: 'tentacula', gh: 2, name: 'Ядовитая Тентакула', seed: '🌵', grown: '🪰🌵', rarity: 'Боевое', desc: 'Хищное зубастое растение. Стреляет ядовитыми шипами и пытается зацапать прохожих.', effect: 'spikes', growTime: 12 },
+            { id: 'chomping_cabbage', gh: 2, name: 'Китайская Капуста', seed: '🥬', grown: '🥬🦷', rarity: 'Боевое', desc: 'Агрессивное растение, с жадностью кусающее всё, что приближается к его кочану.', effect: 'bite', growTime: 8 },
+            { id: 'geranium', gh: 2, name: 'Зубастая Герань', seed: '🪴', grown: '🌺🦷', rarity: 'Защитное', desc: 'Имеет острые зубы внутри бутонов. Часто используется для защиты волшебных жилищ.', effect: 'bite', growTime: 9 },
+            { id: 'snargaluff', gh: 2, name: 'Снаргалофф', seed: '🪵', grown: '🪵🪢', rarity: 'Опасное', desc: 'Выглядит как трухлявый пень, но выстреливает опасными колючими плетьми.', effect: 'vines', growTime: 11 },
+
+            // Greenhouse 3: Rare & Eccentric
+            { id: 'mimbulus', gh: 3, name: 'Мимбулус Мимблетония', seed: '🌵', grown: '🌵🫧', rarity: 'Редчайшее', desc: 'Покрыт пульсирующими волдырями. В случае опасности выбрызгивает вонючий сок Stinksap.', effect: 'stinksap', growTime: 10 },
+            { id: 'gillyweed', gh: 3, name: 'Жабросли', seed: '🪼', grown: '🌿🫧', rarity: 'Эксцентричное', desc: 'Позволяют человеку дышать под водой и выращивают плавательные перепонки.', effect: 'water_bubbles', growTime: 12 },
+            { id: 'bouncing_bulb', gh: 3, name: 'Прыгучая Луковица', seed: '🧅', grown: '🧅💨', rarity: 'Эксцентричное', desc: 'Прыгает вокруг при испуге. Чтобы утихомирить её, нужно применить заклинание или оглушение.', effect: 'bounce', growTime: 7 },
+            { id: 'puffapod', gh: 3, name: 'Паффопод', seed: '🫛', grown: '🌸🎉', rarity: 'Редкое', desc: 'Волшебный стручок, который при созревании взрывается ярким цветным серпантином из лепестков.', effect: 'petals', growTime: 8 },
+            { id: 'screechsnap', gh: 3, name: 'Скричснап', seed: '🪴', grown: '🪴🔊', rarity: 'Эксцентричное', desc: 'Растение, которое непрерывно извивается и издает писклявые звуки при прикосновении.', effect: 'scream', growTime: 9 }
+        ];
+
+        // STATE VARIABLES
+        let currentGreenhouse = 1;
+        let selectedPlant = null;
+        let currentStep = 0; // 0: None, 1: Till, 2: Feed, 3: Water, 4: Magic, 5: Growing, 6: Done
+        let growthInterval = null;
+        let totalGrownCount = 0;
+        let achievements = [
+            { id: 1, title: 'Первый Росток', desc: 'Вырастите 1 волшебное растение', target: 1, done: false },
+            { id: 2, title: 'Ученик Траволога', desc: 'Вырастите 3 растения', target: 3, done: false },
+            { id: 3, title: 'Мастер Теплиц', desc: 'Вырастите 7 растений', target: 7, done: false },
+            { id: 4, title: 'Покоритель Опасностей', desc: 'Вырастите 10 растений', target: 10, done: false },
+            { id: 5, title: 'Легенда Хогвартса', desc: 'Вырастите 15 растений', target: 15, done: false }
+        ];
+
+        // GREENHOUSE SWITCHER
+        function switchGreenhouse(ghNum) {
+            currentGreenhouse = ghNum;
+            for (let i = 1; i <= 3; i++) {
+                const tab = document.getElementById(`ghTab${i}`);
+                if (i === ghNum) {
+                    tab.className = "p-3 rounded-xl border border-yellow-500/50 bg-yellow-600/30 text-yellow-300 font-cinzel text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 shadow-lg";
+                } else {
+                    tab.className = "p-3 rounded-xl border border-green-800/40 bg-black/60 text-gray-400 font-cinzel text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2";
+                }
+            }
+            renderPlantsList();
+        }
+
+        // RENDER CATALOG
+        function renderPlantsList() {
+            const list = document.getElementById('plantsList');
+            list.innerHTML = '';
+            const filtered = plantsDB.filter(p => p.gh === currentGreenhouse);
+
+            document.getElementById('ghPlantCounter').textContent = `${filtered.length} видов`;
+
+            filtered.forEach(p => {
+                const item = document.createElement('div');
+                const isSelected = selectedPlant && selectedPlant.id === p.id;
+                item.className = `p-3 rounded-xl cursor-pointer transition flex items-center justify-between border ${isSelected ? 'bg-yellow-600/20 border-yellow-500/80 shadow-lg' : 'bg-black/40 hover:bg-green-950/40 border-green-800/30'}`;
+                item.onclick = () => selectPlant(p);
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl sm:text-3xl filter drop-shadow">${p.seed}</span>
+                        <div>
+                            <h4 class="font-cinzel text-xs sm:text-sm text-yellow-400 font-bold">${p.name}</h4>
+                            <span class="text-[10px] text-green-300/80 bg-green-950 px-2 py-0.5 rounded border border-green-800/40">${p.rarity}</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-yellow-500/50"></i>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // SELECT PLANT
+        function selectPlant(plant) {
+            selectedPlant = plant;
+            currentStep = 1;
+
+            // Reset Plant Graphics Interactive state
+            const graphic = document.getElementById('plantGraphic');
+            graphic.classList.remove('grown-plant-interactive', 'scale-110');
+            graphic.classList.add('scale-90');
+            document.getElementById('interactiveHint').classList.add('hidden');
+
+            // Reset UI
+            document.getElementById('potLabel').textContent = plant.name;
+            document.getElementById('subLabel').textContent = 'Лунная почва засыпана';
+            graphic.textContent = plant.seed;
+            document.getElementById('stepInstruction').textContent = 'Шаг 1: Нажмите «1. Рыхление», чтобы всрыхлить лунную почву.';
+
+            // Show Plant Info
+            document.getElementById('plantInfoCard').classList.remove('hidden');
+            document.getElementById('infoPlantName').textContent = plant.name;
+            document.getElementById('infoPlantRarity').textContent = plant.rarity;
+            document.getElementById('infoPlantDesc').textContent = plant.desc;
+
+            // Hide Timer
+            document.getElementById('timerPanel').classList.add('hidden');
+
+            renderPlantsList();
+            updateStepButtons();
+        }
+
+        // EXECUTE STEP
+        function executeStep(stepNum) {
+            if (!selectedPlant) return;
+            if (stepNum !== currentStep) return;
+
+            if (stepNum === 1) {
+                AudioSys.playPop();
+                currentStep = 2;
+                document.getElementById('subLabel').textContent = 'Почва взрыхлена';
+                document.getElementById('stepInstruction').textContent = 'Шаг 2: Нажмите «2. Питание», чтобы обогатить почву драконьей костной пылью.';
+                showStatusPop('🧹 Взрыхлено!');
+            } else if (stepNum === 2) {
+                AudioSys.playMagic();
+                currentStep = 3;
+                document.getElementById('subLabel').textContent = 'Субстрат обогащен';
+                document.getElementById('stepInstruction').textContent = 'Шаг 3: Нажмите «3. Полив», чтобы увлажнить живой водой Чёрного озера.';
+                showStatusPop('🧪 Пыльца добавлена!');
+            } else if (stepNum === 3) {
+                AudioSys.playWaterSplash();
+                currentStep = 4;
+                document.getElementById('subLabel').textContent = 'Полив завершен';
+                document.getElementById('stepInstruction').textContent = 'Шаг 4: Нажмите «4. Заклинание», чтобы сотворить фито-чары Люмос Солнечный.';
+                showStatusPop('💧 Полив выполнен!');
+            } else if (stepNum === 4) {
+                AudioSys.playMagic();
+                currentStep = 5;
+                document.getElementById('subLabel').textContent = 'Фито-чары активны';
+                startGrowthProcess();
+            }
+
+            updateStepButtons();
+        }
+
+        // UPDATE STEP BUTTONS HIGHLIGHTS
+        function updateStepButtons() {
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`btnStep${i}`);
+                if (!selectedPlant) {
+                    btn.className = "p-2.5 bg-black/50 border border-green-800/60 rounded-xl text-center text-xs font-cinzel text-green-300 transition opacity-50 pointer-events-none flex flex-col items-center justify-center gap-1 shadow";
+                } else if (i === currentStep) {
+                    btn.className = "p-2.5 bg-yellow-600/30 border border-yellow-500 rounded-xl text-center text-xs font-cinzel text-yellow-300 transition flex flex-col items-center justify-center gap-1 shadow-lg btn-step-active cursor-pointer";
+                } else if (i < currentStep) {
+                    btn.className = "p-2.5 bg-green-900/40 border border-green-600/40 rounded-xl text-center text-xs font-cinzel text-green-400 transition opacity-80 cursor-default flex flex-col items-center justify-center gap-1 shadow";
+                } else {
+                    btn.className = "p-2.5 bg-black/50 border border-green-800/60 rounded-xl text-center text-xs font-cinzel text-gray-500 transition opacity-50 pointer-events-none flex flex-col items-center justify-center gap-1 shadow";
+                }
+            }
+        }
+
+        // GROWTH PROCESS & TIMER
+        function startGrowthProcess() {
+            document.getElementById('stepInstruction').textContent = '⏳ Идет процесс созревания... Ожидайте или нажмите кнопку мгновенного ускорения!';
+            document.getElementById('timerPanel').classList.remove('hidden');
+
+            let timeLeft = selectedPlant.growTime;
+            updateTimerClock(timeLeft);
+
+            clearInterval(growthInterval);
+            growthInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerClock(timeLeft);
+                if (timeLeft <= 0) {
+                    clearInterval(growthInterval);
+                    completeGrowth();
+                }
+            }, 1000);
+        }
+
+        function updateTimerClock(sec) {
+            const m = Math.floor(sec / 60).toString().padStart(2, '0');
+            const s = (sec % 60).toString().padStart(2, '0');
+            document.getElementById('timerClock').textContent = `00:${m}:${s}`;
+        }
+
+        function instantGrow() {
+            clearInterval(growthInterval);
+            completeGrowth();
+        }
+
+        // COMPLETE GROWTH & DRAMATIC FX
+        function completeGrowth() {
+            currentStep = 6;
+            totalGrownCount++;
+            checkAchievements();
+
+            const graphic = document.getElementById('plantGraphic');
+            document.getElementById('timerPanel').classList.add('hidden');
+            graphic.textContent = selectedPlant.grown;
+            graphic.classList.remove('scale-90');
+            graphic.classList.add('scale-110', 'grown-plant-interactive');
+            
+            document.getElementById('interactiveHint').classList.remove('hidden');
+            document.getElementById('subLabel').textContent = 'Созрело! (Кликните для эффекта)';
+            document.getElementById('stepInstruction').textContent = `🎉 Поздравляем! Вы успешно вырастили ${selectedPlant.name}! Кликните по растению для повтора эффекта.`;
+
+            updateStepButtons();
+            triggerPlantEffect(selectedPlant.effect);
+        }
+
+        // CLICK ON FULLY GROWN PLANT TO RE-TRIGGER EFFECT
+        function onGrownPlantClick() {
+            if (currentStep === 6 && selectedPlant) {
+                triggerPlantEffect(selectedPlant.effect);
+            }
+        }
+
+        // DRAMATIC SCREEN FX & SOUNDS
+        function triggerPlantEffect(effect) {
+            const body = document.getElementById('mainBody');
+            const fxContainer = document.getElementById('fxOverlayContainer');
+            const graphic = document.getElementById('plantGraphic');
+
+            if (effect === 'scream') {
+                AudioSys.playScream();
+                body.classList.add('shake-active');
+                showStatusPop('😱 СМЕРТЕЛЬНЫЙ КРИК МАНДРАГОРЫ!');
+                setTimeout(() => body.classList.remove('shake-active'), 1500);
+            } 
+            else if (effect === 'water_bubbles') {
+                AudioSys.playWaterSplash();
+                showStatusPop('🪼 ЭФФЕКТ ПОГРУЖЕНИЯ ПОД ВОДУ!');
+                for (let i = 0; i < 20; i++) {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'bubble';
+                    const size = Math.random() * 30 + 10;
+                    bubble.style.width = `${size}px`;
+                    bubble.style.height = `${size}px`;
+                    bubble.style.left = `${Math.random() * 100}vw`;
+                    bubble.style.animationDuration = `${Math.random() * 2 + 2}s`;
+                    fxContainer.appendChild(bubble);
+                    setTimeout(() => bubble.remove(), 4000);
+                }
+            } 
+            else if (effect === 'pus' || effect === 'stinksap') {
+                AudioSys.playPop();
+                showStatusPop(effect === 'pus' ? '💥 БРЫЗГИ ГНОЯ БУБОНТЮБЕРА!' : '🤮 ВЫБРЫЗГ СОКА STINKSAP!');
+                for (let i = 0; i < 30; i++) {
+                    const drop = document.createElement('div');
+                    drop.className = 'splatter';
+                    drop.style.width = `${Math.random() * 20 + 10}px`;
+                    drop.style.height = drop.style.width;
+                    drop.style.background = effect === 'pus' ? '#a3e635' : '#84cc16';
+                    drop.style.left = `${Math.random() * 80 + 10}%`;
+                    drop.style.top = `${Math.random() * 80 + 10}%`;
+                    fxContainer.appendChild(drop);
+                    setTimeout(() => drop.remove(), 1200);
+                }
+            } 
+            else if (effect === 'bite' || effect === 'spikes') {
+                AudioSys.playBite();
+                showStatusPop(effect === 'bite' ? '🥬 ХРУСТЯЩИЙ УКУС!' : '🌵 ВЫСТРЕЛ ЯДОВИТЫМИ ШИПАМИ!');
+            } 
+            else if (effect === 'vines') {
+                AudioSys.playMagic();
+                showStatusPop('🕸️ ЩУПАЛЬЦА ОХВАТЫВАЮТ ТЕПЛИЦУ!');
+                const vines = document.createElement('div');
+                vines.className = 'vines-overlay';
+                fxContainer.appendChild(vines);
+                setTimeout(() => vines.remove(), 2500);
+            } 
+            else if (effect === 'petals') {
+                AudioSys.playMagic();
+                showStatusPop('🌸 ВЗРЫВ ЦВЕТНОГО СЕРПАНТИНА!');
+                for (let i = 0; i < 40; i++) {
+                    const petal = document.createElement('div');
+                    petal.className = 'splatter';
+                    petal.style.width = `${Math.random() * 15 + 8}px`;
+                    petal.style.height = petal.style.width;
+                    petal.style.background = ['#ec4899', '#f43f5e', '#a855f7', '#3b82f6'][Math.floor(Math.random()*4)];
+                    petal.style.left = `${Math.random() * 90 + 5}%`;
+                    petal.style.top = `${Math.random() * 90 + 5}%`;
+                    fxContainer.appendChild(petal);
+                    setTimeout(() => petal.remove(), 1200);
+                }
+            } 
+            else if (effect === 'bounce') {
+                AudioSys.playPop();
+                graphic.classList.add('bounce-anim');
+                showStatusPop('🧅 ПРЫЖКИ ЛУКОВИЦЫ!');
+                setTimeout(() => graphic.classList.remove('bounce-anim'), 1200);
+            }
+            else {
+                AudioSys.playMagic();
+                showStatusPop('✨ МАГИЧЕСКИЕ СВОЙСТВА АКТИВИРОВАНЫ!');
+            }
+        }
+
+        function showStatusPop(txt) {
+            const pop = document.getElementById('statusPop');
+            pop.textContent = txt;
+            pop.classList.remove('scale-0', 'opacity-0');
+            pop.classList.add('scale-100', 'opacity-100');
+            setTimeout(() => {
+                pop.classList.remove('scale-100', 'opacity-100');
+                pop.classList.add('scale-0', 'opacity-0');
+            }, 2500);
+        }
+
+        // ACHIEVEMENTS SYSTEM
+        function checkAchievements() {
+            let completedCount = 0;
+            achievements.forEach(a => {
+                if (totalGrownCount >= a.target) {
+                    a.done = true;
+                }
+                if (a.done) completedCount++;
+            });
+            document.getElementById('achieveCount').textContent = completedCount;
+        }
+
+        function toggleAchievementsModal() {
+            const modal = document.getElementById('achievementsModal');
+            modal.classList.toggle('hidden');
+
+            const list = document.getElementById('achievementsList');
+            list.innerHTML = '';
+
+            achievements.forEach(a => {
+                const item = document.createElement('div');
+                item.className = `p-3 rounded-xl border flex items-center justify-between ${a.done ? 'bg-green-950/60 border-green-600/50' : 'bg-black/40 border-yellow-600/20 opacity-60'}`;
+                item.innerHTML = `
+                    <div>
+                        <h5 class="font-cinzel text-xs text-yellow-400 font-bold">${a.title}</h5>
+                        <p class="text-[10px] text-gray-400">${a.desc}</p>
+                    </div>
+                    <span class="text-xs font-bold font-cinzel ${a.done ? 'text-green-400' : 'text-yellow-500/50'}">${a.done ? '✓ Выполнено' : `${totalGrownCount}/${a.target}`}</span>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // INITIALIZATION
+        window.onload = function() {
+            switchGreenhouse(1);
+        };
+    </script>
+</body>
+</html>
